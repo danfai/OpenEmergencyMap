@@ -49,13 +49,12 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         $.post('<?php echo $this->createUrl('object/details'); ?>',{
             'id': e.layer.object_id
         },function(data){
-            e.layer._popup.setContent("Name: " + data.name + "<br />Description: " + data.description + "<br /><a href='#' class='edit'>Edit</a> <a href='#' class='delete'>Delete</a>");
+            e.layer._popup.setContent("<b>" + data.name + "</b><br />" + data.description + "<br /><a href='#' class='edit'>Edit</a> <a href='#' class='delete'>Delete</a>");
             $('.edit').click(function(event){
                 event.preventDefault();
                 e.layer.closePopup();
-
+                overlayItems.removeLayer(e.layer);
                 drawnItems.addLayer(e.layer);
-                //TODO: Muss wieder zurück
                 drawControl._toolbars[32]._modes.edit.button.click();
             });
             $('.delete').click(function(){
@@ -83,6 +82,9 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
             },500);
             return;
         }
+        if(drawnItems.getLayers().length > 0)
+            return;
+        //TODO: Zu viel overhead
         $.post('<?php echo $this->createUrl('object/receive') ?>',{
             'bbox': map.getBounds().toBBoxString()
         },function(data){
@@ -109,6 +111,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
                         break;
                 }
                 layer.object_id = elem.id;
+                layer.type = elem.type;
                 overlayItems.addLayer(layer);
             });
         },'json');
@@ -177,26 +180,27 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         tmpLayer = e;
         drawnItems.addLayer(e.layer);
         e.layer.openPopup();
-        e.layer.getPopup().on('close',function(){
+        e.layer._popup.on('close',function(){
             if(e.layer._icon)
                 drawnItems.removeLayer(e.layer);
         });
     });
-    map.on('draw:drawstart',function(){
+    map.on('draw:drawstart',function(e){
         drawnItems.clearLayers();
     });
+
     map.on('draw:edited',function(e){
-        console.log(e);
-        e.preventDefault();
-        overlayItems.addLayer(tmpLayer.layer);
+        e.layer = e.layers.getLayers()[0];
+        console.log(e, e.layers, e.layers.getLayers());
         $.post("<?php echo $this->createUrl('object/edit') ?>", {
-            'coordinates': getCoordinates(e.layers[0],e.layerType),
-            'type': e.layerType
+            'coordinates': getCoordinates(e.layer,e.layer.type),
+            'type': e.layer.type,
+            'id': e.layer.object_id
         },function(data){
             console.log(data);
+            drawnItems.clearLayers();
             loadOverlay();
         },'json');
-        drawnItems.clearLayers();
     });
     function getLatLng(latlng){
         return {
@@ -216,12 +220,6 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
                 result= [getLatLng(layer.getLatLng())];
                 break;
             case 'polygon':
-                tmp = layer.getLatLngs();
-                $.each(tmp,function(i,elem){
-                    tmp[i] = getLatLng(tmp[i]);
-                });
-                result = tmp;
-                break;
             case 'rectangle':
             case 'polyline':
                 tmp = layer.getLatLngs();
@@ -236,17 +234,15 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
 
     function insertSubmit(e){
         e.preventDefault();
-        overlayItems.addLayer(tmpLayer.layer);
         $.post("<?php echo $this->createUrl('object/create') ?>", {
             'coordinates': getCoordinates(tmpLayer.layer,tmpLayer.layerType),
             'type': tmpLayer.layerType,
             'name': $(e.target).find('input#input-name').val(),
             'description': $(e.target).find('input#input-descr').val()
         },function(data){
-            console.log(data);
+            drawnItems.clearLayers();
             loadOverlay();
         },'json');
-        drawnItems.clearLayers();
         return false;
     }
 

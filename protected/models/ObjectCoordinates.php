@@ -45,7 +45,7 @@ class ObjectCoordinates extends CActiveRecord
 		// NOTE: you may need to adjust the relation name and the related
 		// class name for the relations automatically generated below.
 		return array(
-            'object'=>array(self::HAS_ONE, 'Object', 'object_id')
+            'object'=>array(self::BELONGS_TO, 'Object', 'object_id')
 		);
 	}
 
@@ -56,8 +56,8 @@ class ObjectCoordinates extends CActiveRecord
 	{
 		return array(
 			'id' => 'ID',
-			'longitude' => 'Longitude',
-			'latitude' => 'Latitude',
+			'lng' => 'Longitude',
+			'lat' => 'Latitude',
 			'object_id' => 'Object',
 			'index' => 'Index',
 		);
@@ -82,8 +82,8 @@ class ObjectCoordinates extends CActiveRecord
 		$criteria=new CDbCriteria;
 
 		$criteria->compare('id',$this->id);
-		$criteria->compare('longitude',$this->longitude);
-		$criteria->compare('latitude',$this->latitude);
+		$criteria->compare('lng',$this->longitude);
+		$criteria->compare('lat',$this->latitude);
 		$criteria->compare('object_id',$this->object_id);
 		$criteria->compare('index',$this->index);
 

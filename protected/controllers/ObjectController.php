@@ -37,7 +37,7 @@ class ObjectController extends Controller
         $coord[1] -= 0.01;
         $coord[2] += 0.01;
         $coord[3] += 0.01;
-        echo CJSON::encode(Object::model()->with('coordinates')->findAllByBBox($coord[0], $coord[2], $coord[1], $coord[3]));
+        echo CJSON::encode(Object::model()->with('coordinates','attributes')->findAllByBBox($coord[0], $coord[2], $coord[1], $coord[3]));
         Yii::app()->end();
     }
 
@@ -65,18 +65,51 @@ class ObjectController extends Controller
             isset($_POST['name']) &&
             isset($_POST['description']) &&
             isset($_POST['coordinates']))){
-            Debug::log("Not enough parameter",false);
+            throw new CHttpException(400, "You have to send the correct parameters.");
         }
 
-        $object = Object::model();
-        $object->setIsNewRecord(true);
+        $object = new Object('insert');
         $object->type = $_POST['type'];
         $object->name = $_POST['name'];
         $object->description = $_POST['description'];
+
+        $trans = Yii::app()->db->beginTransaction();
         $object->insert();
 
         foreach($_POST['coordinates'] AS $index => $coord) {
-            $oc = ObjectCoordinates::model();
+            $oc = new ObjectCoordinates('insert');
+            $oc->lat = $coord['lat'];
+            $oc->lng = $coord['lng'];
+            $oc->index = $index;
+            $oc->object_id = $object->id;
+            $oc->insert();
+        }
+
+        $trans->commit();
+
+        echo CJSON::encode($object);
+    }
+
+    public function actionEdit(){
+        if(!isset($_POST['id']) || !isset($_POST['coordinates'])) {
+            throw new CHttpException(400, "You have to send the correct parameters.");
+        }
+
+        $object = Object::model()->with('coordinates')->findByPk((int) $_POST['id']);
+        if(isset($_POST['type']))
+            $object->type = $_POST['type'];
+        if(isset($_POST['name']))
+            $object->name = $_POST['name'];
+        if(isset($_POST['description']))
+            $object->description = $_POST['description'];
+
+        $trans = Yii::app()->db->beginTransaction();
+        $object->save();
+
+        ObjectCoordinates::model()->deleteAllByAttributes(array('object_id' => $object->id));
+
+        foreach($_POST['coordinates'] AS $index => $coord) {
+            $oc = new ObjectCoordinates('insert');
             $oc->setIsNewRecord(true);
             $oc->lat = $coord['lat'];
             $oc->lng = $coord['lng'];
@@ -84,6 +117,8 @@ class ObjectController extends Controller
             $oc->object_id = $object->id;
             $oc->insert();
         }
+
+        $trans->commit();
 
         echo CJSON::encode($object);
     }
