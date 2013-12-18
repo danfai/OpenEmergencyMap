@@ -13,6 +13,7 @@ class Controller extends CController
         $cs->registerScriptFile($baseUrl . '/js/leaflet.js');
         $cs->registerScriptFile($baseUrl . '/js/leaflet.draw.js');
         $cs->registerScriptFile($baseUrl. '/js/leaflet-hash.js');
+        $cs->registerScriptFile($baseUrl . "/js/L.Control.Sidebar.js");
 //        $cs->registerScriptFile($this->assetsDir . '/js/leaflet.markercluster.js');
 
         $cs->registerCssFile($baseUrl . "/css/jquery-ui.css");
@@ -20,6 +21,7 @@ class Controller extends CController
 //        $cs->registerCssFile($baseUrl . "/css/MarkerCluster.css");
 //        $cs->registerCssFile($baseUrl . "/css/MarkerCluster.Default.css");
         $cs->registerCssFile($baseUrl . "/css/leaflet.draw.css");
+        $cs->registerCssFile($baseUrl . "/css/L.Control.Sidebar.css");
     }
 
 	/**

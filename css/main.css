@@ -28,7 +28,9 @@ table tr td.clickable {
 table tr td.clickable:hover {
     background-color: #C9E0ED;
 }
-
+#sidebar #insert-form {
+    margin: 5px;
+}
 
 .leaflet-control-help{
     font-weight: bold;

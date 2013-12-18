@@ -5,18 +5,26 @@ $this->pageTitle=Yii::app()->name;
 $baseUrl = Yii::app()->baseUrl . '/static/';
 
 ?>
-<div id="insert-form" style="display:none">
-    <form method="POST" onsubmit="return insertSubmit(event);">
-        <label for="name">Name: </label>
-        <input type="text" name="name" id="input-name" /><br />
-        <label for="descr">Beschreibung: </label>
-        <input type="text" name="descr" id="input-descr" /><br />
-        <fieldset>
-            <legend>Attribute:</legend>
-            <span>Hier sollen dann zusätzliche Informationen rein. Ist die Frage, wie es aussehen soll...</span>
-        </fieldset>
-        <input type="submit" id="insert-submit" value="Absenden"/>
-    </form>
+<div id="sidebar">
+    <div id="insert-form" style="display:none">
+        <form method="POST" onsubmit="return insertSubmit(event);">
+            <div class="form">
+                <div class="row">
+                    <label for="name">Name: </label>
+                    <input type="text" name="name" id="input-name" />
+                </div>
+                <div class="row">
+                    <label for="descr">Beschreibung: </label>
+                    <input type="text" name="descr" id="input-descr" /><br />
+                </div>
+                <fieldset>
+                    <legend>Attribute:</legend>
+                    <span>Hier sollen dann zusätzliche Informationen rein. Ist die Frage, wie es aussehen soll...</span>
+                </fieldset>
+                <input type="submit" id="insert-submit" value="Absenden"/>
+            </div>
+        </form>
+    </div>
 </div>
 <div id="startDialog" title="Hilfe oder Helfer?" style="display: none">
     <p>Suchst du <b>Hilfe</b> oder m&ouml;chtest du dich als <b>Helfer</b> zur Verf&uuml;gung stellen.</p>
@@ -42,6 +50,18 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
     var drawnItems = L.featureGroup();
     var map = L.map('content',{layers:[tile,overlayItems,drawnItems]}).setView([49.97,8.5],11);
 
+    var tmpLayer = {};
+    var sidebar = L.control.sidebar('sidebar');
+    sidebar.addTo(map);
+    sidebar.on('hide',function(){
+        edit.disable();
+        drawnItems.removeLayer(tmpLayer.layer);
+        overlayItems.addLayer(tmpLayer.layer);
+    });
+    var edit = (new L.EditToolbar.Edit(map,{
+        featureGroup:drawnItems,
+        selectedPathOptions:L.EditToolbar.prototype.options.edit.selectedPathOptions
+    }));
     var popup = drawnItems.bindPopup(L.popup().setContent($("div#insert-form").html()));
     overlayItems.bindPopup(L.popup().setContent("Loading"));
 
@@ -49,13 +69,21 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         $.post('<?php echo $this->createUrl('object/details'); ?>',{
             'id': e.layer.object_id
         },function(data){
-            e.layer._popup.setContent("<b>" + data.name + "</b><br />" + data.description + "<br /><a href='#' class='edit'>Edit</a> <a href='#' class='delete'>Delete</a>");
+            e.layer._popup.setContent("<b>" + data.name + "</b><br />" + data.description
+                + "<br /><a href='#' class='edit'>Edit</a> <a href='#' class='delete'>Delete</a>");
+
             $('.edit').click(function(event){
                 event.preventDefault();
                 e.layer.closePopup();
                 overlayItems.removeLayer(e.layer);
                 drawnItems.addLayer(e.layer);
-                drawControl._toolbars[32]._modes.edit.button.click();
+                tmpLayer.layer = e.layer;
+                tmpLayer.layerType = e.layer.type;
+                edit.enable();
+                $("#insert-form").show();
+                $('#insert-form #input-name').val(data.name);
+                $('#insert-form #input-descr').val(data.description);
+                sidebar.show();
             });
             $('.delete').click(function(){
                 $.post('<?php echo $this->createUrl('object/delete'); ?>',{id: e.layer.object_id},function(data){
@@ -128,14 +156,11 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
                 allowIntersection: false
             }
         },
-        edit: {
-            featureGroup: drawnItems
-        }
+        edit: false,
+        delete: false
     });
 
     map.addControl(drawControl);
-
-    var tmpLayer;
 
     L.Control.Help = L.Control.extend({
         options: {
@@ -181,26 +206,12 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         drawnItems.addLayer(e.layer);
         e.layer.openPopup();
         e.layer._popup.on('close',function(){
-            if(e.layer._icon)
+
                 drawnItems.removeLayer(e.layer);
         });
     });
     map.on('draw:drawstart',function(e){
         drawnItems.clearLayers();
-    });
-
-    map.on('draw:edited',function(e){
-        e.layer = e.layers.getLayers()[0];
-        console.log(e, e.layers, e.layers.getLayers());
-        $.post("<?php echo $this->createUrl('object/edit') ?>", {
-            'coordinates': getCoordinates(e.layer,e.layer.type),
-            'type': e.layer.type,
-            'id': e.layer.object_id
-        },function(data){
-            console.log(data);
-            drawnItems.clearLayers();
-            loadOverlay();
-        },'json');
     });
     function getLatLng(latlng){
         return {
@@ -234,14 +245,26 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
 
     function insertSubmit(e){
         e.preventDefault();
-        $.post("<?php echo $this->createUrl('object/create') ?>", {
+        var url;
+        var object = {
             'coordinates': getCoordinates(tmpLayer.layer,tmpLayer.layerType),
             'type': tmpLayer.layerType,
             'name': $(e.target).find('input#input-name').val(),
             'description': $(e.target).find('input#input-descr').val()
-        },function(data){
+        };
+        if(edit.enabled()) {
+            url = "<?php echo $this->createUrl('object/edit') ?>";
+            object.id = tmpLayer.layer.object_id;
+        } else {
+            url = "<?php echo $this->createUrl('object/create') ?>";
+        }
+        $.post(url, object,function(data){
             drawnItems.clearLayers();
             loadOverlay();
+            if(edit.enabled()) {
+                edit.disable();
+                sidebar.hide();
+            }
         },'json');
         return false;
     }
