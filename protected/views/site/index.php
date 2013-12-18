@@ -6,7 +6,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
 
 ?>
 <div id="sidebar">
-    <div id="insert-form" style="display:none">
+    <div id="insert-form">
         <form method="POST" onsubmit="return insertSubmit(event);">
             <div class="form">
                 <div class="row">
@@ -48,22 +48,25 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
     var tile = L.tileLayer('/tiles/{z}/{x}/{y}.png');
     var overlayItems = L.featureGroup();
     var drawnItems = L.featureGroup();
-    var map = L.map('content',{layers:[tile,overlayItems,drawnItems]}).setView([49.97,8.5],11);
+    var map = L.map('content',{layers:[tile,overlayItems,drawnItems]});
+    var hash = L.hash(map);
+    if(!hash.lastHash){
+        map.setView([49.97,8.5],11);
+    }
 
     var tmpLayer = {};
     var sidebar = L.control.sidebar('sidebar');
     sidebar.addTo(map);
     sidebar.on('hide',function(){
         edit.disable();
-        drawnItems.removeLayer(tmpLayer.layer);
+        drawnItems.clearLayers();
         overlayItems.addLayer(tmpLayer.layer);
+        tmpLayer = {};
     });
     var edit = (new L.EditToolbar.Edit(map,{
         featureGroup:drawnItems,
         selectedPathOptions:L.EditToolbar.prototype.options.edit.selectedPathOptions
     }));
-    var popup = drawnItems.bindPopup(L.popup().setContent($("div#insert-form").html()));
-    overlayItems.bindPopup(L.popup().setContent("Loading"));
 
     overlayItems.on('click',function(e){
         $.post('<?php echo $this->createUrl('object/details'); ?>',{
@@ -74,7 +77,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
 
             $('.edit').click(function(event){
                 event.preventDefault();
-                e.layer.closePopup();
+                e.layer.closePopup();setView([49.97,8.5],11)
                 overlayItems.removeLayer(e.layer);
                 drawnItems.addLayer(e.layer);
                 tmpLayer.layer = e.layer;
@@ -93,9 +96,6 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         },'json');
     });
 
-
-
-    hash = L.hash(map);
     //TODO: Leaflet Clustering Marker einbinden
 
     map.on('autopanstart',function(){
@@ -204,11 +204,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
     map.on('draw:created',function(e){
         tmpLayer = e;
         drawnItems.addLayer(e.layer);
-        e.layer.openPopup();
-        e.layer._popup.on('close',function(){
-
-                drawnItems.removeLayer(e.layer);
-        });
+        sidebar.show();
     });
     map.on('draw:drawstart',function(e){
         drawnItems.clearLayers();
@@ -260,10 +256,10 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         }
         $.post(url, object,function(data){
             drawnItems.clearLayers();
+            sidebar.hide();
             loadOverlay();
             if(edit.enabled()) {
                 edit.disable();
-                sidebar.hide();
             }
         },'json');
         return false;

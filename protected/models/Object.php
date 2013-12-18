@@ -108,6 +108,7 @@ class Object extends CActiveRecord
         Yii::trace(get_class($this).'.findAllByBBox()','system.db.ar.CActiveRecord');
 
         $criteria=new CDbCriteria();
+        $criteria->distinct = true;
         $criteria->addBetweenCondition('coordinates.lng', $lat1, $lat2);
         $criteria->addBetweenCondition('coordinates.lat', $lng1, $lng2);
 
@@ -116,6 +117,7 @@ class Object extends CActiveRecord
         foreach($db AS $entry){
             $ids[] = $entry->id;
         }
+        $this->getDbCriteria()->limit = 100;
         return $this->findAllByPk($ids);
     }
 
