@@ -53,7 +53,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
     if(!hash.lastHash){
         map.setView([49.97,8.5],11);
     }
-
+    overlayItems.bindPopup(L.popup());
     var tmpLayer = {};
     var sidebar = L.control.sidebar('sidebar');
     sidebar.addTo(map);

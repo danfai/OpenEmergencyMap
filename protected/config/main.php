@@ -38,7 +38,7 @@ return array(
 			),
 		),
 		'db'=>array(
-			'connectionString' => 'mysql:host=localhost;dbname=oem',
+			'connectionString' => 'mysql:host=database;dbname=oem',
 			'username' => 'oem',
 			'password' => 'No99fXeUm3p7BF2zUmyR',
 			'charset' => 'utf8',
