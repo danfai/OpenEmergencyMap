@@ -5,6 +5,11 @@ $this->pageTitle=Yii::app()->name;
 $baseUrl = Yii::app()->baseUrl . '/static/';
 
 ?>
+<div id="event">
+    <span class="title">Ereignisse in ihrer N&auml;he:</span>
+    <span class="content"></span>
+</div>
+<div id="map" style="height: 500px"></div>
 <div id="sidebar">
     <div id="insert-form">
         <form method="POST" onsubmit="return insertSubmit(event);">
@@ -48,7 +53,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
     var tile = L.tileLayer('/tiles/{z}/{x}/{y}.png');
     var overlayItems = L.featureGroup();
     var drawnItems = L.featureGroup();
-    var map = L.map('content',{layers:[tile,overlayItems,drawnItems]});
+    var map = L.map('map',{layers:[tile,overlayItems,drawnItems]});
     var hash = L.hash(map);
     if(!hash.lastHash){
         map.setView([49.97,8.5],11);
@@ -77,7 +82,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
 
             $('.edit').click(function(event){
                 event.preventDefault();
-                e.layer.closePopup();setView([49.97,8.5],11)
+                e.layer.closePopup();
                 overlayItems.removeLayer(e.layer);
                 drawnItems.addLayer(e.layer);
                 tmpLayer.layer = e.layer;
@@ -112,14 +117,19 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         }
         if(drawnItems.getLayers().length > 0)
             return;
+
+        $.post('<?php echo $this->createUrl('event/receive') ?>',{
+            'position': getLatLng(map.getCenter())
+        },function(data){
+            $("#event > .content").text(data.name);
+        },'json');
+
         //TODO: Zu viel overhead
         $.post('<?php echo $this->createUrl('object/receive') ?>',{
             'bbox': map.getBounds().toBBoxString()
         },function(data){
             overlayItems.clearLayers();
-            /*if(data.moreObjectsAvailable) {
-                notifyUser("Es sind mehr Objekte vorhanden, bitte zoome hinein, um alle Objekte zu sehen.","error");
-            } */
+
             $.each(data,function(i,elem){
                 var layer;
                 switch(elem.type){

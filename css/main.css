@@ -43,7 +43,6 @@ table tr td.clickable:hover {
 	margin-bottom: 5px;
 	background: white;
 	border: 1px solid #C9E0ED;
-    height: 80%;
 }
 
 #header
@@ -56,7 +55,6 @@ table tr td.clickable:hover {
 #content
 {
     padding: 20px;
-    height: 100%;
 }
 
 #sidebar

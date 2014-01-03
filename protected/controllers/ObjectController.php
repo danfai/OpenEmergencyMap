@@ -50,7 +50,9 @@ class ObjectController extends Controller
         if(!isset($_POST['id'])) {
             throw new CHttpException(400, "You have to send the correct parameters.");
         }
-        echo CJSON::encode(Object::model()->findByPk($_POST['id'])->delete());
+        ObjectCoordinates::model()->deleteAllByAttributes(array('object_id'=>$_POST['id']));
+        ObjectAttributes::model()->deleteAllByAttributes(array('object_id'=>$_POST['id']));
+        echo CJSON::encode(Object::model()->deleteByPk($_POST['id']));
         Yii::app()->end();
     }
 
