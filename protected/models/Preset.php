@@ -19,8 +19,15 @@ class Preset extends CActiveRecord
 	}
 
     public function beforeValidate(){
-        parent::beforeValidate();
-        $this->type = join(',',$this->type);
+        $result = parent::beforeValidate();
+        if($result && is_array($this->type))
+            $this->type = join(',',$this->type);
+
+        if(sizeof($this->type) < 1){
+            $this->addError('type','Please set at least one type');
+            $result=false;
+        }
+        return $result;
     }
 
     public function afterFind(){

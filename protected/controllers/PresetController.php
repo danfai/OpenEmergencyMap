@@ -70,6 +70,9 @@ class PresetController extends Controller
 		if(isset($_POST['Preset']))
 		{
 			$model->attributes=$_POST['Preset'];
+
+            $model->type = join(',',$_POST['Preset']['type']);
+
 			if($model->save())
 				$this->redirect(array('view','id'=>$model->id));
 		}
@@ -94,6 +97,9 @@ class PresetController extends Controller
 		if(isset($_POST['Preset']))
 		{
 			$model->attributes=$_POST['Preset'];
+
+            $model->type = join(',',$_POST['Preset']['type']);
+
 			if($model->save())
 				$this->redirect(array('view','id'=>$model->id));
 		}
