@@ -20,7 +20,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
                 </div>
                 <div class="row">
                     <label for="descr">Beschreibung: </label>
-                    <input type="text" name="descr" id="input-descr" /><br />
+                    <textarea name="descr" id="input-descr" ></textarea><br />
                 </div>
                 <fieldset>
                     <legend>Attribute:</legend>
@@ -77,7 +77,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         $.post('<?php echo $this->createUrl('object/details'); ?>',{
             'id': e.layer.object_id
         },function(data){
-            e.layer._popup.setContent("<b>" + data.name + "</b><br />" + data.description
+            e.layer._popup.setContent("<b>" + data.name + "</b><br />" + data.description.replace(/\n/g,"<br\/>")
                 + "<br /><a href='#' class='edit'>Edit</a> <a href='#' class='delete'>Delete</a>");
 
             $('.edit').click(function(event){
@@ -121,7 +121,11 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         $.post('<?php echo $this->createUrl('event/receive') ?>',{
             'position': getLatLng(map.getCenter())
         },function(data){
-            $("#event > .content").text(data.name);
+            $("#event > .content").text(data.name).click(function(){
+                var bound = L.latLngBounds([[data.start_lat,data.start_lng],
+                    [data.end_lat,data.end_lng]]);
+                map.fitBounds(bound);
+            });
         },'json');
 
         //TODO: Zu viel overhead
@@ -256,7 +260,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
             'coordinates': getCoordinates(tmpLayer.layer,tmpLayer.layerType),
             'type': tmpLayer.layerType,
             'name': $(e.target).find('input#input-name').val(),
-            'description': $(e.target).find('input#input-descr').val()
+            'description': $(e.target).find('#input-descr').val()
         };
         if(edit.enabled()) {
             url = "<?php echo $this->createUrl('object/edit') ?>";
