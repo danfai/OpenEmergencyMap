@@ -17,10 +17,10 @@ class UserIdentity extends CUserIdentity
 	 */
 	public function authenticate()
 	{
-        $user = User::model()->findByAttributes(array('name'=>$this->username));
-		if($user->count() != 1)
+        $users = User::model()->findAllByAttributes(array('name'=>$this->username));
+		if(sizeof($users) != 1)
 			$this->errorCode=self::ERROR_USERNAME_INVALID;
-		elseif($user->password!==User::hashPassword($this->password))
+		elseif($users[0]->password!==User::hashPassword($this->password))
 			$this->errorCode=self::ERROR_PASSWORD_INVALID;
 		else
 			$this->errorCode=self::ERROR_NONE;

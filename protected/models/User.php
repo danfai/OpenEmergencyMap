@@ -90,12 +90,12 @@ class User extends CActiveRecord
 
 		$criteria=new CDbCriteria;
 
-		$criteria->compare('id',$this->ID,true);
-		$criteria->compare('name',$this->Name,true);
-		$criteria->compare('email',$this->eMail,true);
-		$criteria->compare('group_id',$this->GroupID,true);
-		$criteria->compare('blocked',$this->Blocked);
-		$criteria->compare('language_code',$this->LanguageCode,true);
+		$criteria->compare('id',$this->id,true);
+		$criteria->compare('name',$this->name,true);
+		$criteria->compare('email',$this->email,true);
+		$criteria->compare('group_id',$this->group_id,true);
+		$criteria->compare('blocked',$this->blocked);
+		$criteria->compare('language_code',$this->language_code,true);
 
 		return new CActiveDataProvider($this, array(
 			'criteria'=>$criteria,
