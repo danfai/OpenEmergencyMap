@@ -92,7 +92,7 @@ class ObjectController extends Controller
             throw new CHttpException(400, "You have to send the correct parameters.");
         }
 
-        $object = Object::model()->with('coordinates')->findByPk((int) $_POST['id']);
+        $object = Object::model()->findByPk((int) $_POST['id']);
         if(isset($_POST['type']))
             $object->type = $_POST['type'];
         if(isset($_POST['name']))
@@ -117,7 +117,7 @@ class ObjectController extends Controller
 
         $trans->commit();
 
-        echo CJSON::encode($object);
+        echo CJSON::encode(Object::model()->with('coordinates')->findByPk($object->id));
     }
 
 }
