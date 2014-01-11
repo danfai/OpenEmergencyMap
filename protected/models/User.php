@@ -35,6 +35,7 @@ class User extends CActiveRecord
 			array('blocked', 'numerical', 'integerOnly'=>true),
 			array('name, Password', 'length', 'max'=>64),
 			array('email', 'length', 'max'=>255),
+                        array('email,name', "unique"),
 			array('group_id, last_activity', 'length', 'max'=>10),
 			array('language_code', 'length', 'max'=>4),
 			// The following rule is used by search().
@@ -113,6 +114,7 @@ class User extends CActiveRecord
 		return parent::model($className);
 	}
 
+    //return CPasswordHelper::hashPassword($password . Yii::app()->params['pepper'], 13);
     public static function hashPassword($password) {
         $hash = $password;
         $pepper = Yii::app()->params['pepper'];
