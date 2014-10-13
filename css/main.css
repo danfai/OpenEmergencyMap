@@ -36,6 +36,17 @@ table tr td.clickable:hover {
     font-weight: bold;
     color: #222222;
 }
+#event .content {
+    cursor: pointer;
+    text-decoration: underline;
+    color: #3366ff;
+}
+#event .content:hover {
+    color: #6699ff;
+}
+#event {
+    padding-bottom: 2px;
+}
 
 #page
 {

@@ -82,6 +82,17 @@ class ObjectController extends Controller
             $oc->insert();
         }
 
+        if(isset($_POST['attributes'])) {
+            foreach($_POST['attributes'] AS $key => $value) {
+                $oa = new ObjectAttributes('insert');
+                $oa->setIsNewRecord(true);
+                $oa->key = $key;
+                $oa->value = $value;
+                $oa->object_id = $object->id;
+                $oa->insert();
+            }
+        }
+
         $trans->commit();
 
         echo CJSON::encode($object);
@@ -113,6 +124,19 @@ class ObjectController extends Controller
             $oc->index = $index;
             $oc->object_id = $object->id;
             $oc->insert();
+        }
+
+        if(isset($_POST['attributes'])) {
+            ObjectAttributes::model()->deleteAllByAttributes(array('object_id' => $object->id));
+
+            foreach($_POST['attributes'] AS $key => $value) {
+                $oa = new ObjectAttributes('insert');
+                $oa->setIsNewRecord(true);
+                $oa->key = $key;
+                $oa->value = $value;
+                $oa->object_id = $object->id;
+                $oa->insert();
+            }
         }
 
         $trans->commit();

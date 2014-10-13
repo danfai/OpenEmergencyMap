@@ -28,7 +28,7 @@ class PresetController extends Controller
 	{
 		return array(
 			array('allow',  // allow all users to perform 'index' and 'view' actions
-				'actions'=>array('index','view'),
+				'actions'=>array('index','view','receive'),
 				'users'=>array('*'),
 			),
 			array('allow', // allow authenticated user to perform 'create' and 'update' actions
@@ -122,6 +122,16 @@ class PresetController extends Controller
 		if(!isset($_GET['ajax']))
 			$this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('admin'));
 	}
+
+    public function actionReceive()
+    {
+        if(!isset($_POST['type'])) {
+            throw new CHttpException(400, "Please set Type Parameter.");
+        }
+        $type = $_POST['type'];
+        echo CJSON::encode(Preset::model()->findAll('`type` LIKE "%' . $type . '%"'));
+        Yii::app()->end();
+    }
 
 	/**
 	 * Lists all models.

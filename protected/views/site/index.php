@@ -15,6 +15,12 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         <form method="POST" onsubmit="return insertSubmit(event);">
             <div class="form">
                 <div class="row">
+                    <label for="preset">Preset: </label>
+                    <select name="preset" id="input-preset">
+
+                    </select>
+                </div>
+                <div class="row">
                     <label for="name">Name: </label>
                     <input type="text" name="name" id="input-name" />
                 </div>
@@ -121,7 +127,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         $.post('<?php echo $this->createUrl('event/receive') ?>',{
             'position': getLatLng(map.getCenter())
         },function(data){
-            $("#event > .content").text(data.name).click(function(){
+            $("#event > .content").text(data.name).unbind("click").click(function(){
                 var bound = L.latLngBounds([[data.start_lat,data.start_lng],
                     [data.end_lat,data.end_lng]]);
                 map.fitBounds(bound);
@@ -218,6 +224,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
     map.on('draw:created',function(e){
         tmpLayer = e;
         drawnItems.addLayer(e.layer);
+        loadPresets(e.layerType);
         sidebar.show();
     });
     map.on('draw:drawstart',function(e){
@@ -228,6 +235,16 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
             'lat':latlng.lat,
             'lng':latlng.lng
         };
+    }
+
+    function loadPresets(type){
+        $.post("<?php echo $this->createUrl('preset/receive') ?>",{'type': type},function(data){
+            var $select = $("select#input-preset");
+            $select.children().remove();
+            $(data).each(function(i,elem){
+                $select.append($("<option></option>").attr('value',elem.id).text(elem.name));
+            });
+        },'json');
     }
 
     function getCoordinates(layer, layerType){

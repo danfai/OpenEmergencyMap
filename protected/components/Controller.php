@@ -39,4 +39,11 @@ class Controller extends CController
 	 * for more details on how to specify this property.
 	 */
 	public $breadcrumbs=array();
+
+    public function init() {
+        parent::init();
+        if($_SERVER['CONTENT_TYPE'] == "application/json") {
+            $_POST = CJSON::decode(Yii::app()->request->getRawBody(),true);
+       }
+    }
 }
