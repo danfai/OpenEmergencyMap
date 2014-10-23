@@ -84,6 +84,9 @@ class ObjectController extends Controller
 
         if(isset($_POST['attributes'])) {
             foreach($_POST['attributes'] AS $key => $value) {
+                if($value === "") {
+                    continue;
+                }
                 $oa = new ObjectAttributes('insert');
                 $oa->setIsNewRecord(true);
                 $oa->key = $key;
@@ -130,6 +133,9 @@ class ObjectController extends Controller
             ObjectAttributes::model()->deleteAllByAttributes(array('object_id' => $object->id));
 
             foreach($_POST['attributes'] AS $key => $value) {
+                if($value === "") {
+                    continue;
+                }
                 $oa = new ObjectAttributes('insert');
                 $oa->setIsNewRecord(true);
                 $oa->key = $key;

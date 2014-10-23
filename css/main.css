@@ -31,6 +31,12 @@ table tr td.clickable:hover {
 #sidebar #insert-form {
     margin: 5px;
 }
+#sidebar #insert-form .attribute-row input {
+    width: 44%;
+}
+#sidebar #insert-form .attribute-row span {
+    margin-left: 6px;
+}
 
 .leaflet-control-help{
     font-weight: bold;

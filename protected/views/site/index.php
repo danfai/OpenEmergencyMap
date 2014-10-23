@@ -29,8 +29,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
                     <textarea name="descr" id="input-descr" ></textarea><br />
                 </div>
                 <fieldset>
-                    <legend>Attribute:</legend>
-                    <span>Hier sollen dann zusätzliche Informationen rein. Ist die Frage, wie es aussehen soll...</span>
+                    <legend>Eigenschaften:</legend>
                 </fieldset>
                 <input type="submit" id="insert-submit" value="Absenden"/>
             </div>
@@ -56,7 +55,7 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
     $("#startDialog").dialog({closable: true});
 
     L.Icon.Default.imagePath = "<?php echo $baseUrl ?>images";
-    var tile = L.tileLayer('/tiles/{z}/{x}/{y}.png');
+    var tile = L.tileLayer('/osm_tiles/{z}/{x}/{y}.png');
     var overlayItems = L.featureGroup();
     var drawnItems = L.featureGroup();
     var map = L.map('map',{layers:[tile,overlayItems,drawnItems]});
@@ -83,8 +82,13 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         $.post('<?php echo $this->createUrl('object/details'); ?>',{
             'id': e.layer.object_id
         },function(data){
+            var attribute = "";
+            $.each(data.attributes,function(i,elem) {
+                attribute += "<b>" + elem.key + ":</b> " + elem.value + "<br />";
+            });
             e.layer._popup.setContent("<b>" + data.name + "</b><br />" + data.description.replace(/\n/g,"<br\/>")
-                + "<br /><a href='#' class='edit'>Edit</a> <a href='#' class='delete'>Delete</a>");
+                + "<br />" + attribute + "<a href='#' class='edit'>Edit</a> <a href='#' class='delete'>Delete</a>");
+            //TODO: show attributes in Popup?
 
             $('.edit').click(function(event){
                 event.preventDefault();
@@ -97,6 +101,31 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
                 $("#insert-form").show();
                 $('#insert-form #input-name').val(data.name);
                 $('#insert-form #input-descr').val(data.description);
+
+                $('#insert-form fieldset .attribute-row').remove();
+                $.each(data.attributes,function(i,elem) {
+                    var $div = $(document.createElement("div"));
+                    $div.addClass("attribute-row");
+                    $div.append($(document.createElement("input")).attr("type","text").addClass('key').val(elem.key));
+                    $div.append($(document.createElement("input")).attr("type","text").addClass('value').val(elem.value));
+                    $div.append($(document.createElement("span")).text("-").click(function(){ $(this).parent().remove()}));
+                    $('#insert-form fieldset').append($div);
+                });
+                var $div = $(document.createElement("div"));
+                $div.addClass("attribute-row");
+                $div.append($(document.createElement("input")).attr("type","text").addClass('key'));
+                $div.append($(document.createElement("input")).attr("type","text").addClass('value'));
+                $div.append($(document.createElement("span")).text("+").click(function(){ 
+                    var $div = $(document.createElement("div"));
+                    $div.addClass("attribute-row");
+                    $div.append($(document.createElement("input")).attr("type","text").addClass('key'));
+                    $div.append($(document.createElement("input")).attr("type","text").addClass('value'));
+                    $(this).parent().append($(document.createElement("span")).text("-").click(function(){ $(this).parent().remove()}));
+                    $div.append(this);
+                    $('#insert-form fieldset').append($div);
+                }));
+                $('#insert-form fieldset').append($div);
+
                 sidebar.show();
             });
             $('.delete').click(function(){
@@ -277,7 +306,8 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
             'coordinates': getCoordinates(tmpLayer.layer,tmpLayer.layerType),
             'type': tmpLayer.layerType,
             'name': $(e.target).find('input#input-name').val(),
-            'description': $(e.target).find('#input-descr').val()
+            'description': $(e.target).find('#input-descr').val(),
+            'attributes': {}
         };
         if(edit.enabled()) {
             url = "<?php echo $this->createUrl('object/edit') ?>";
@@ -285,6 +315,9 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
         } else {
             url = "<?php echo $this->createUrl('object/create') ?>";
         }
+        $('#sidebar fieldset .attribute-row').each(function() {
+            object.attributes[$(this).find('.key').val()] = $(this).find(".value").val();
+        });
         $.post(url, object,function(data){
             drawnItems.clearLayers();
             sidebar.hide();
