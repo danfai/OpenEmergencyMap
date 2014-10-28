@@ -42,6 +42,9 @@ table tr td.clickable:hover {
     font-weight: bold;
     color: #222222;
 }
+.leaflet-control-help .sync {
+    background-image: url("sync.png");
+}
 #event .content {
     cursor: pointer;
     text-decoration: underline;

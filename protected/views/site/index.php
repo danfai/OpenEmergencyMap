@@ -222,6 +222,9 @@ $baseUrl = Yii::app()->baseUrl . '/static/';
             this._createButton('?', 'Help', 'help', container, function(){
                 $("#startDialog").dialog();
             });
+            this._createButton('', 'Synchronisieren', 'sync', container, function(){
+                loadOverlay();
+            });
 
             return container;
         },
